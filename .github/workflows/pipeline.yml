@@ -31,6 +31,8 @@ jobs:
           command: npm run test:e2e
           start: npm run start-test
           wait-on: http://localhost:5000
+      - name: See files
+        run: ls -l
       - name: Deploy to Netlify
         id: netlify_deploy
         run: |
