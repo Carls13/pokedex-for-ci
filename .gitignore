@@ -3,3 +3,5 @@ node_modules/
 cypress/plugins
 cypress/support
 cypress/videos
+# Local Netlify folder
+.netlify

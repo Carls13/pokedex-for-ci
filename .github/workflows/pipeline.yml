@@ -21,7 +21,7 @@ jobs:
       - name: Install Netlify
         run: npm install netlify-cli@17.10.1 -g
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --no-optional
+        run: npm ci
       - name: Lint 
         run: npm run eslint
       - name: Build
@@ -37,6 +37,7 @@ jobs:
       - name: See files
         run: ls -l
       - name: Deploy to Netlify
+        if: ${{}}
         id: netlify_deploy
         run: |
           prod_flag=""
