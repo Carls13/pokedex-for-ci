@@ -40,6 +40,7 @@ jobs:
       - name: See files
         run: ls -l
       - name: Deploy to Netlify
+        if: ${{ github.event_name == 'push' }}
         id: netlify_deploy
         run: |
           prod_flag=""
