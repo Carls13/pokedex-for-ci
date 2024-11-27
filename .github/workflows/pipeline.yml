@@ -108,6 +108,10 @@ jobs:
     steps:
       - name: Install Netlify
         run: npm install netlify-cli@17.10.1 -g
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
       - name: See files
         run: ls -l
       - name: Deploy to Netlify
