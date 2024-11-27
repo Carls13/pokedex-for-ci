@@ -11,14 +11,18 @@ on:
 env:
   BRANCH_NAME: ${{ github.ref_name }}
 
-jobs: 
-  deploy:
+jobs:
+  avoid_redundancy:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Redundant Builds
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v2
         with: 
           fetch-depth: 0
@@ -31,16 +35,79 @@ jobs:
         run: npm ci
       - name: Lint 
         run: npm run eslint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with: 
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - name: Install Netlify
+        run: npm install netlify-cli@17.10.1 -g
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint 
+        run: npm run eslint     
       - name: Build
         run: npm run build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  test:
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with: 
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: npm ci
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
       - name: Test
         run: npm run test
+  
+  e2e:
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with: 
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - name: Install Netlify
+        run: npm install netlify-cli@17.10.1 -g
+      - name: Install dependencies
+        run: npm ci
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
       - name: E2E Test
         uses: cypress-io/github-action@v6
         with:
           command: npm run test:e2e
           start: npm run start-test
           wait-on: http://localhost:5000
+
+  deploy:
+    needs: [test, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Netlify
+        run: npm install netlify-cli@17.10.1 -g
       - name: See files
         run: ls -l
       - name: Deploy to Netlify
